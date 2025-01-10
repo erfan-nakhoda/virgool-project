@@ -13,7 +13,17 @@ export enum AuthMessage {
     SuccessLogin = ".با موفقیت وارد حساب کاربری خود شدید",
     LoginRequired = ".ورود به حساب کاربری الزامیست"
 }
-
+export enum NotFoundMessages {
+    CategoryMissing = ".دسته بندی مورد نظر یافت نشد"
+}
 export enum PublicMessage {
-    SentOtp  = ".کد یک بار مصرف با موفقیت ارسال شد"
+    SentOtp  = ".کد یک بار مصرف با موفقیت ارسال شد",
+    CategoryCreated = ".دسته بندی با موفقیت ایجاد شد",
+    CategoryUpdated = ".دسته بندی با موفقیت به روز رسانی شد",
+    CategoryDeleted = ".دسته بندی با موفقیت حذف شد",
+
+}
+
+export enum ConflictMessages {
+    TitleCategory = ".دسته بندی ای با این نام قبلا وجود داشته است"
 }
