@@ -9,6 +9,8 @@ namespace NodeJS {
         //secrets
         COOKIE_SECRET : string,
         OTP_JWT_SECRET : string,
-        ACCESS_TOKEN_SECRET : string
+        ACCESS_TOKEN_SECRET : string,
+        EMAIL_TOKEN_SECRET : string,
+        PHONE_TOKEN_SECRET : string,
     }
 }

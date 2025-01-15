@@ -15,11 +15,11 @@ import { AuthResponse } from './types/response.type';
 import { CookieNames } from './enums/cookies.enum';
 import { TokenService } from './token.service';
 import { REQUEST } from '@nestjs/core';
+import { cookieOption } from 'src/common/utils/cookieOption.utils';
 
 @Injectable({scope : Scope.REQUEST})
 export class AuthService {
     constructor(@InjectRepository(UserEntity) private userRepository: Repository<UserEntity>,
-        @InjectRepository(ProfileEntity) private profileRepository: Repository<ProfileEntity>,
         @InjectRepository(OtpEntity) private otpRepository: Repository<OtpEntity>,
     private readonly tokenService : TokenService,
     @Inject(REQUEST) private request : Request) { }
@@ -41,7 +41,8 @@ export class AuthService {
         const ValidUser = this.usernameValidator(method, username);
         const user: UserEntity = await this.CheckMethod(method, ValidUser, BadRequestMessage.InValidLoginData);
         if (!user) throw new UnauthorizedException(AuthMessage.NotFoundAccount);
-        const otp = await this.sendAndSaveOtp(user.id);
+        const otp = await this.sendAndSaveOtp(user.id, method);
+        await this.otpRepository.save(otp);
         const token = this.tokenService.SignOtpToken({userId : user.id});
         return {code : otp.code,
             token
@@ -58,7 +59,8 @@ export class AuthService {
         user = await this.userRepository.save(user);
         user.username = `m_${user.id}`;
         user = await this.userRepository.save(user);
-        const otp = await this.sendAndSaveOtp(user.id);
+        const otp = await this.sendAndSaveOtp(user.id, method);
+        await this.otpRepository.save(otp);
         const token = this.tokenService.SignOtpToken({userId : user.id});
         return {code : otp.code,
             token
@@ -66,7 +68,7 @@ export class AuthService {
     }
     async sendResponse(res : any, result: AuthResponse) {
         const {token, code} = result;
-        res.cookie(CookieNames.Otp, token, {httpOnly: true,expires : new Date(Date.now() + (1000 * 60 * 2))});
+        res.cookie(CookieNames.Otp, token, cookieOption());
         return res.json({
             message : PublicMessage.SentOtp,
             code
@@ -81,13 +83,17 @@ export class AuthService {
         const now = new Date()
         if(otp.expiresIn < now) throw new UnauthorizedException(AuthMessage.ExpiredCookie);
         if(otp.code !== code) throw new BadRequestException(AuthMessage.TryAgain);
+        let user = await this.userRepository.findOneBy({id : userId});
+        if(otp.method === AuthMethods.Email) user.verify_email = true; 
+        else if(otp.method === AuthMethods.Phone) user.verify_phone = true; 
+        await this.userRepository.save(user);
         const accessToken = this.tokenService.SignAccessToken({userId});
         return {
             message : AuthMessage.SuccessLogin,
             accessToken
         }
     }
-    async sendAndSaveOtp(userId: number) {
+    async sendAndSaveOtp(userId: number, method : AuthMethods) {
         const code = randomInt(10000, 99999).toString();
         const expiresIn = new Date(Date.now() + (1000 * 60 * 2));
         let existOtp = false;
@@ -96,11 +102,13 @@ export class AuthService {
             existOtp = true
             otp.code = code
             otp.expiresIn = expiresIn
+            otp.method = method
         }else{
             otp = this.otpRepository.create({
                 code,
                 expiresIn,
-                userId
+                userId,
+                method
             })
             //Send SMS or Email
         }

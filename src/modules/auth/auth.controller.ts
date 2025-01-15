@@ -11,7 +11,7 @@ import { AuthGuard } from './guard/auth.guard';
 @Controller('auth')
 @ApiTags('Auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService,private readonly tokenService : TokenService) {}
+  constructor(private readonly authService: AuthService) {}
   @Post("user-existence")
   @ApiConsumes(SwaggerConsume.UrlEncoded, SwaggerConsume.Json)
   UserExistence(@Body() authDto : AuthDto, @Res() res : Response){
@@ -19,14 +19,13 @@ export class AuthController {
   }
   @Post("check-otp")
   @ApiConsumes(SwaggerConsume.UrlEncoded, SwaggerConsume.Json)
-  CheckOtp(@Body() checkOtpDto : CheckOtpDto){
-    return this.authService.checkOtp(checkOtpDto.code)
-  }
-
-  @Get("check-login")
-  @ApiBearerAuth("Authorization")
-  @UseGuards(AuthGuard)
-  checkLogin(@Req() request : Request){
-    return request.user;
+  async CheckOtp(@Body() checkOtpDto : CheckOtpDto, @Res() res: Response){
+    const result = await this.authService.checkOtp(checkOtpDto.code)
+    console.log(result);
+    res.cookie(CookieNames.AccessToken, result.accessToken, {
+      maxAge : 1000 * 3600  * 24
+    })
+    return res.json(result);
+    
   }
 }

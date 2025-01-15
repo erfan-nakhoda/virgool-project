@@ -1,3 +1,6 @@
 export enum CookieNames {
-    Otp = "Otp"
+    Otp = "otp",
+    AccessToken = "access_token",
+    EmailOtp = "email-otp",
+    PhoneOtp = "phone-otp",
 }
