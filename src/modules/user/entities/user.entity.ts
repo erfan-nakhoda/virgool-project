@@ -1,8 +1,12 @@
 import { BaseEntity } from "src/common/abstract/base.entity";
 import { Entities } from "src/common/enums/entity.enum";
-import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { OtpEntity } from "./otp.entity";
 import { ProfileEntity } from "./profile.entity";
+import { BlogEntity } from "src/modules/blogs/entities/blog.entity";
+import { BlogLikeEntity } from "src/modules/blogs/entities/like.entity";
+import { BlogBookMarkEntity } from "src/modules/blogs/entities/bookmark.entity";
+import { BlogCommentEntity } from "src/modules/blogs/entities/comment.entity";
 
 @Entity(Entities.User)
 export class UserEntity extends BaseEntity{
@@ -28,6 +32,14 @@ export class UserEntity extends BaseEntity{
     created_at : Date
     @UpdateDateColumn()
     updated_at : Date
+    // @OneToMany(() => BlogCommentEntity, comment => comment.user)
+    // blogComments : BlogCommentEntity[]
+    // @OneToMany(() => BlogEntity, blog => blog.author)
+    // blogs : BlogEntity[]
+    // @OneToMany(() => BlogBookMarkEntity, bookmark => bookmark.user)
+    // blogBookmarks : BlogBookMarkEntity[]
+    // @OneToMany(() => BlogLikeEntity, likes => likes.user)
+    // blogLikes : BlogLikeEntity[]
     @OneToOne(()=> OtpEntity, otp => otp.user, {nullable : true})
     @JoinColumn()
     otp : OtpEntity
